@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { Link, usePage } from '@inertiajs/react';
+import UserHeader from '@/Components/UserHeader';
 
 
 export default function Dashboard({  }) {
@@ -8,9 +9,7 @@ export default function Dashboard({  }) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl text-center font-semibold leading-tight text-gray-800">
-                    Agent Dashboard
-                </h2>
+               <UserHeader/>
             }
         >
             <Head title="Agent Dashboard" />

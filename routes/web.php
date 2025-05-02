@@ -1,10 +1,15 @@
 <?php
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminTicketController;
+use App\Http\Controllers\Admin\AdminAgentController;
+use App\Http\Controllers\Admin\AdminUserController;
 
 use App\Http\Controllers\CreateTicketController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
 
 
 // Public Welcome Page
@@ -33,14 +38,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/tickets/{id}', [CreateTicketController::class, 'view'])->name('tickets.view');
 });
 
-// Admin Routes - Role-based access via middleware
-Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return Inertia::render('Admin/Dashboard');
-    })->name('admin.dashboard');
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+
+    // Admin Dashboard
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    // Tickets Management
+    Route::get('/tickets', [AdminTicketController::class, 'index'])->name('tickets');
+
+    // Agents Management
+    Route::get('/agents', [AdminAgentController::class, 'index'])->name('agents');
+
+    // Users Management
+    Route::get('/users', [AdminUserController::class, 'index'])->name('users');
+
+    // 👇 Add these two for user actions
+    Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/{id}/promote', [AdminUserController::class, 'promoteToAgent'])->name('users.promote');
+    Route::delete('/agents/{id}', [AdminAgentController::class, 'destroy'])->name('agents.destroy');
 });
-
-
 // Agent Routes - Role-based access via middleware
 Route::middleware(['auth', 'verified', 'role:agent'])->group(function () {
     Route::get('/agent/dashboard', function () {

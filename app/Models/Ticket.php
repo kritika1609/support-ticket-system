@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\User;
 
 class Ticket extends Model
 {
@@ -29,5 +29,8 @@ class Ticket extends Model
     {
         return $this->belongsToMany(Label::class, 'label_ticket', 'ticket_id', 'label_id');
     }
-
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
