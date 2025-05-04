@@ -1,12 +1,14 @@
 <?php
 
 namespace App\Models;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 
 class Ticket extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'title',
         'description',
@@ -33,4 +35,9 @@ class Ticket extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function agent()
+    {
+        return $this->belongsTo(User::class, 'agent_id');
+    }
+
 }

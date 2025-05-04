@@ -45,9 +45,11 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 
     // Tickets Management
     Route::get('/tickets', [AdminTicketController::class, 'index'])->name('tickets');
+    Route::delete('/tickets/{id}', [AdminTicketController::class, 'destroy'])->name('tickets.destroy');
 
     // Agents Management
     Route::get('/agents', [AdminAgentController::class, 'index'])->name('agents');
+    Route::post('/tickets/{id}/assign', [AdminTicketController::class, 'assignAgent'])->name('tickets.assign');
 
     // Users Management
     Route::get('/users', [AdminUserController::class, 'index'])->name('users');
