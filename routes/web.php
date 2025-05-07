@@ -23,9 +23,16 @@ Route::get('/', function () {
 // User Dashboard - No Role Middleware needed
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+        $user = auth()->user();
 
+        if ($user->role_id === 1) {
+            return redirect()->route('admin.dashboard');
+        } elseif ($user->role_id === 2) {
+            return redirect()->route('agent.dashboard');
+        } else {
+            return redirect()->route('dashboard');
+        }
+    })->name('dashboard');
     // Create Ticket
     Route::get('/createticket', [CreateTicketController::class, 'create'])->name('createticket');
     Route::post('/createticket/store', [CreateTicketController::class, 'store'])->name('ticket.store');
@@ -38,6 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/tickets/{id}', [CreateTicketController::class, 'view'])->name('tickets.view');
 });
 
+//ADMIN
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
 
     // Admin Dashboard
@@ -45,20 +53,36 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 
     // Tickets Management
     Route::get('/tickets', [AdminTicketController::class, 'index'])->name('tickets');
-    Route::delete('/tickets/{id}', [AdminTicketController::class, 'destroy'])->name('tickets.destroy');
+    Route::delete('/tickets/{ticket}', [AdminTicketController::class, 'destroy'])->name('tickets.destroy');
+
+    // 👇 Soft Deleted Tickets Management
+    Route::get('/tickets/trashed', [AdminTicketController::class, 'trashed'])->name('tickets.trashed');
+    Route::post('/tickets/{id}/restore', [AdminTicketController::class, 'restore'])->name('tickets.restore');
+    Route::delete('/tickets/{id}/force-delete', [AdminTicketController::class, 'forceDelete'])->name('tickets.forceDelete');
 
     // Agents Management
     Route::get('/agents', [AdminAgentController::class, 'index'])->name('agents');
-    Route::post('/tickets/{id}/assign', [AdminTicketController::class, 'assignAgent'])->name('tickets.assign');
+    Route::delete('/agents/{id}', [AdminAgentController::class, 'destroy'])->name('agents.destroy');
+
+    // 👇 Soft Deleted Agents Management
+    Route::get('/agents/trashed', [AdminAgentController::class, 'trashed'])->name('agents.trashed');
+    Route::post('/agents/{id}/restore', [AdminAgentController::class, 'restore'])->name('agents.restore');
+    Route::delete('/agents/{id}/force-delete', [AdminAgentController::class, 'forceDelete'])->name('agents.forceDelete');
 
     // Users Management
     Route::get('/users', [AdminUserController::class, 'index'])->name('users');
-
-    // 👇 Add these two for user actions
     Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
-    Route::post('/users/{id}/promote', [AdminUserController::class, 'promoteToAgent'])->name('users.promote');
-    Route::delete('/agents/{id}', [AdminAgentController::class, 'destroy'])->name('agents.destroy');
+    Route::put('/users/{id}/promote', [AdminUserController::class, 'promoteToAgent'])->name('users.promote');
+
+    // 👇 Soft Deleted Users Management
+    Route::get('/users/trashed', [AdminUserController::class, 'trashed'])->name('users.trashed');
+    Route::post('/users/{id}/restore', [AdminUserController::class, 'restore'])->name('users.restore');
+    Route::delete('/users/{id}/force-delete', [AdminUserController::class, 'forceDelete'])->name('users.forceDelete');
+
 });
+
+
+
 // Agent Routes - Role-based access via middleware
 Route::middleware(['auth', 'verified', 'role:agent'])->group(function () {
     Route::get('/agent/dashboard', function () {

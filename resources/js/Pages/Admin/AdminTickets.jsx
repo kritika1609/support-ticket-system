@@ -96,7 +96,7 @@ const AdminTickets = () => {
                     Reset
                 </button>
                 <button
-                    onClick={() => console.log("Trash bin clicked")} // Placeholder for soft delete functionality
+                    onClick={() => router.get(route('admin.tickets.trashed'))} // Placeholder for soft delete functionality
                     className="ml-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-sm"
                 >
                     <svg
@@ -174,11 +174,13 @@ const AdminTickets = () => {
                                                     <button
                                                         onClick={() => {
                                                             if (confirm("Are you sure you want to soft delete this ticket?")) {
-                                                                router.delete(route('admin.tickets.soft-delete', { ticket: selectedTicketId }));
+                                                                console.log("Ticket ID being deleted: ", ticket.id);
+                                                                router.delete(route('admin.tickets.destroy', { ticket: ticket.id }));
                                                             }
                                                         }}
                                                         className="ml-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-sm"
                                                     >
+
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
                                                             fill="none"
@@ -194,7 +196,6 @@ const AdminTickets = () => {
                                                             />
                                                         </svg>
                                                     </button>
-
 
                                                 </td>
 

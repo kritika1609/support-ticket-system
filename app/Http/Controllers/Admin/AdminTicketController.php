@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
-
+use Illuminate\Support\Facades\Redirect;
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
@@ -58,11 +58,33 @@ class AdminTicketController extends Controller
 
         return redirect()->back()->with('success', 'Agent assigned successfully.');
     }
-    public function softDelete(Ticket $ticket)
+    public function destroy(Ticket $ticket)
     {
         $ticket->delete();
-
         return back()->with('success', 'Ticket moved to trash!');
+    }
+    public function trashed()
+    {
+        $trashedTickets = Ticket::onlyTrashed()->with('user')->get(); // eager load if needed
+        return Inertia::render('Admin/TrashedTickets', [
+            'tickets' => $trashedTickets,
+        ]);
+    }
+
+    public function restore($id)
+    {
+        $ticket = Ticket::withTrashed()->findOrFail($id);
+        $ticket->restore();
+
+        return Redirect::route('admin.tickets.trashed')->with('success', 'Ticket restored!');
+    }
+
+    public function forceDelete($id)
+    {
+        $ticket = Ticket::withTrashed()->findOrFail($id);
+        $ticket->forceDelete();
+
+        return Redirect::route('admin.tickets.trashed')->with('success', 'Ticket permanently deleted!');
     }
 
 }
