@@ -3,7 +3,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminTicketController;
 use App\Http\Controllers\Admin\AdminAgentController;
 use App\Http\Controllers\Admin\AdminUserController;
-
+use App\Http\Controllers\Agent\AgentDashboardController;
 use App\Http\Controllers\CreateTicketController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
@@ -29,9 +29,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return redirect()->route('admin.dashboard');
         } elseif ($user->role_id === 2) {
             return redirect()->route('agent.dashboard');
-        } else {
-            return redirect()->route('dashboard');
         }
+        return Inertia::render('Dashboard');
     })->name('dashboard');
     // Create Ticket
     Route::get('/createticket', [CreateTicketController::class, 'create'])->name('createticket');
@@ -54,6 +53,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     // Tickets Management
     Route::get('/tickets', [AdminTicketController::class, 'index'])->name('tickets');
     Route::delete('/tickets/{ticket}', [AdminTicketController::class, 'destroy'])->name('tickets.destroy');
+    // Assign Agent to Ticket
+    Route::post('/tickets/{id}/assign', [AdminTicketController::class, 'assignAgent'])->name('tickets.assign');
 
     // 👇 Soft Deleted Tickets Management
     Route::get('/tickets/trashed', [AdminTicketController::class, 'trashed'])->name('tickets.trashed');
@@ -81,14 +82,12 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 
 });
 
-
-
 // Agent Routes - Role-based access via middleware
 Route::middleware(['auth', 'verified', 'role:agent'])->group(function () {
-    Route::get('/agent/dashboard', function () {
-        return Inertia::render('Agent/Dashboard');
-    })->name('agent.dashboard');
+    Route::get('/agent/dashboard', [AgentDashboardController::class, 'index'])->name('agent.dashboard');
+    Route::put('/agent/tickets/{ticket}/close', [AgentDashboardController::class, 'close'])->name('agent.tickets.close');
 });
+
 
 // Profile Routesxa
 Route::middleware(['auth'])->group(function () {

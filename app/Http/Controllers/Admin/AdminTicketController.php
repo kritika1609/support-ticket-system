@@ -56,7 +56,7 @@ class AdminTicketController extends Controller
         $ticket->status = 'in_progress'; // or any other label you're using
         $ticket->save();
 
-        return redirect()->back()->with('success', 'Agent assigned successfully.');
+        return redirect()->route('admin.tickets')->with('success', 'Agent assigned successfully.');
     }
     public function destroy(Ticket $ticket)
     {

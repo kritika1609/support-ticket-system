@@ -51,7 +51,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                     </nav>
                 </header>
                 <main className="flex-grow bg-gradient-to-b from-white via-blue-50 to-white">
-                    
+
                     <section className="flex flex-col-reverse lg:flex-row items-center justify-between gap-12 px-6 py-20 max-w-7xl mx-auto">
                         <div className="w-full lg:w-1/2 flex justify-center">
                             <img
@@ -68,7 +68,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                         </div>
                     </section>
 
-                 
+
                     <section className="flex flex-col lg:flex-row items-center justify-between gap-12 px-6 py-20 max-w-7xl mx-auto bg-white rounded-t-3xl">
                         <div className="w-full lg:w-1/2 text-center lg:text-left space-y-2 flex justify-center ">
                             <div className="max-w-lg">

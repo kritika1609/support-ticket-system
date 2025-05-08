@@ -8,7 +8,7 @@ export default function Dashboard() {
     return (
         <AuthenticatedLayout
             header={
-                <UserHeader/>
+                <UserHeader />
             }
         >
             <Head title="Dashboard" />
