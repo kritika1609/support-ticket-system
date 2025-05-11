@@ -8,12 +8,12 @@ use App\Models\Category;
 use App\Models\Label;
 use Inertia\Inertia;
 use App\Models\TicketAttachment;
-
+use App\Models\Comment;
 class CreateTicketController extends Controller
 {
     public function index()
     {
-        $tickets = Ticket::with(['categories', 'labels', 'attachments'])
+        $tickets = Ticket::with(['categories', 'labels', 'attachments', 'comments.user'])
             ->where('user_id', auth()->id()) // Filter by the logged-in user's ID
             ->get();
 

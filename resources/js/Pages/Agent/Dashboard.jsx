@@ -3,14 +3,14 @@ import { Head, usePage, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
 export default function Dashboard() {
-    const { auth, tickets } = usePage().props;
+    const { auth, tickets, successMessage } = usePage().props;
     const user = auth.user;
     const [openDetails, setOpenDetails] = useState({});
     const [showAttachment, setShowAttachment] = useState({}); // Track which ticket's attachments to show
     const [priority, setPriority] = useState(""); // Empty for all options, or you can set default value
     const [statusFilter, setStatusFilter] = useState(""); // Empty for all statuses
-
-
+    const [message, setMessage] = useState(successMessage || "");  // Initialize with props message or default empty string
+    const [comment, setComment] = useState("");  // Track the comment input
     const toggleDetails = (ticketId) => {
         setOpenDetails(prev => ({ ...prev, [ticketId]: !prev[ticketId] }));
     };
@@ -20,6 +20,24 @@ export default function Dashboard() {
             router.put(route('agent.tickets.close', { ticket: ticketId }));
         }
     };
+    const handleCommentSubmit = (e, ticketId) => {
+        e.preventDefault();
+
+        // Create FormData to handle the comment submission
+        const formData = new FormData();
+        formData.append('comment', comment);
+        formData.append('ticket_id', ticketId);
+        router.post('/agentcomments/store', formData, {
+            onSuccess: () => {
+                setComment("");  // Clear textarea
+                setMessage(successMessage);
+            },
+            // Submit the comment using Inertia
+            onError: (errors) => {
+                console.log('Error:', errors);  // Log any errors in the form submission
+            },
+        });
+    }
     // Toggle function to show/hide attachment for each ticket
     const toggleAttachment = (id) => {
         setShowAttachment((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -33,6 +51,20 @@ export default function Dashboard() {
                     Welcome, {user.name}!
                 </div>
             </div>
+            {message && (
+                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <span className="block sm:inline">{message}</span>
+                    <span
+                        className="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer"
+                        onClick={() => setMessage("")}
+                    >
+                        <svg className="fill-current h-6 w-6 text-green-700" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <title>Close</title>
+                            <path d="M14.348 5.652a1 1 0 00-1.414-1.414L10 7.172 7.066 4.238a1 1 0 10-1.414 1.414L8.586 10l-2.934 2.934a1 1 0 101.414 1.414L10 12.828l2.934 2.934a1 1 0 001.414-1.414L11.414 10l2.934-2.934z" />
+                        </svg>
+                    </span>
+                </div>
+            )}
             <div className="flex items-center justify-center gap-4 m-6">
                 {/* Priority Filter */}
                 <div className="relative">
@@ -188,10 +220,59 @@ export default function Dashboard() {
                                             )}
                                             {openDetails[ticket.id] && (
                                                 <tr className="bg-gray-50">
-                                                    <td colSpan="4" className="p-4 text-sm text-gray-800">
-                                                        <p><strong>Description:</strong> {ticket.description}</p>
-                                                        <p><strong>Category:</strong> {ticket.categories?.map(cat => cat.name).join(', ')}</p>
-                                                        <p><strong>Labels:</strong> {ticket.labels?.map(label => label.name).join(', ')}</p>
+                                                    <td colSpan="4" className="p-4">
+                                                        <div className="space-y-2 text-sm text-gray-800">
+                                                            <p>
+                                                                <strong>Description:</strong> {ticket.description}
+                                                            </p>
+                                                            <p>
+                                                                <strong>Category:</strong>{' '}
+                                                                {ticket.categories.map((category) => category.name).join(', ')}
+                                                            </p>
+                                                            <p>
+                                                                <strong>Labels:</strong>{' '}
+                                                                {ticket.labels.map((label) => label.name).join(', ')}
+                                                            </p>
+                                                            {ticket.comments && ticket.comments.length > 0 && (
+                                                                <div className="mt-4 border-t pt-2">
+                                                                    <h4 className="font-semibold text-gray-700 mb-2">Comments:</h4>
+                                                                    <ul className="space-y-2">
+                                                                        {ticket.comments.map((comment) => (
+                                                                            <li key={comment.id} className="bg-gray-100 p-2 rounded shadow-sm">
+                                                                                <p className="text-sm text-gray-800">{comment.comment}</p>
+                                                                                <p className="text-xs text-gray-500">— {comment.user?.name || 'Unknown'} | {new Date(comment.created_at).toLocaleString()}</p>
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Comment Form */}
+                                                            <div className="mt-4">
+                                                                <form>
+                                                                    <label htmlFor={`comment-${ticket.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+                                                                        Add Comment:
+                                                                    </label>
+                                                                    <textarea
+                                                                        name="comment"
+                                                                        id={`comment-${ticket.id}`}
+                                                                        rows="2"
+                                                                        className="w-full p-2 border border-gray-300 rounded mb-2"
+                                                                        placeholder="Type your comment..."
+                                                                        value={comment}
+                                                                        onChange={(e) => setComment(e.target.value)}
+                                                                        required
+                                                                    ></textarea>
+                                                                    <button
+                                                                        type="submit"
+                                                                        onClick={(e) => handleCommentSubmit(e, ticket.id)}
+                                                                        className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm"
+                                                                    >
+                                                                        Submit
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             )}

@@ -13,13 +13,17 @@ class AgentDashboardController extends Controller
     {
         $agentId = Auth::id();
 
-        // Get sorting and filtering parameters from the request
+        // Get sorting and filtering parameters
         $priority = $request->get('priority');
         $statusFilter = $request->get('status_filter');
 
         // Start the query for tickets
-        $query = Ticket::where('agent_id', $agentId)
-            ->with(['categories', 'labels', 'attachments']);
+        $query = Ticket::where(function ($query) use ($agentId) {
+            // Tickets where the agent is assigned
+            $query->where('agent_id', $agentId)
+                ->orWhere('user_id', Auth::id()); // Or tickets where the current user (could be a user) is involved
+        })
+            ->with(['categories', 'labels', 'attachments', 'comments.user']); // Eager load comments with user info
 
         // Apply priority filter if set
         if ($priority) {
@@ -39,7 +43,6 @@ class AgentDashboardController extends Controller
         if ($request->get('sort_by')) {
             $sortBy = $request->get('sort_by');
 
-            // You can add more sorting criteria as needed
             switch ($sortBy) {
                 case 'priority':
                     $query->orderBy('priority');
@@ -51,20 +54,20 @@ class AgentDashboardController extends Controller
                     $query->latest();
                     break;
                 default:
-                    // Default sorting can be by the most recent tickets
                     $query->latest();
                     break;
             }
         }
 
-        // Fetch the tickets with the applied filters and sorting
+        // Fetch tickets with applied filters and sorting
         $tickets = $query->get();
 
-        // Return the view with the tickets data
+        // Return the view with tickets and comments data
         return Inertia::render('Agent/Dashboard', [
             'tickets' => $tickets,
         ]);
     }
+
 
 
     public function close(Ticket $ticket)

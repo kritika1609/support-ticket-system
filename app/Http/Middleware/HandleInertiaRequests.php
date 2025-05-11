@@ -34,6 +34,11 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            // Add this inside share method
+            'flash' => [
+                'successMessage' => fn() => session('successMessage'),
+            ],
+
         ];
     }
 }

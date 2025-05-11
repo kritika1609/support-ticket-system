@@ -39,5 +39,10 @@ class Ticket extends Model
     {
         return $this->belongsTo(User::class, 'agent_id');
     }
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
 
 }

@@ -3,15 +3,17 @@ import { usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import UserHeader from '@/Components/UserHeader';
+import { router } from '@inertiajs/react';
 
-const ViewTickets = () => {
+const ViewTicket = () => {
     // Ensure the tickets data is coming from the props
-    const { tickets } = usePage().props; // This gets the tickets data from the props passed from the controller
+    const { tickets, successMessage } = usePage().props; // This gets the tickets data from the props passed from the controller
 
-    console.log(tickets); // Log the tickets to verify
 
     const [openDetails, setOpenDetails] = useState({}); // Track which ticket's details are open
     const [showAttachment, setShowAttachment] = useState({}); // Track which ticket's attachments to show
+    const [message, setMessage] = useState(successMessage || "");  // Initialize with props message or default empty string
+    const [comment, setComment] = useState("");  // Track the comment input
 
     // Toggle function to open/close details for each ticket
     const toggleDetails = (id) => {
@@ -23,13 +25,45 @@ const ViewTickets = () => {
         setShowAttachment((prev) => ({ ...prev, [id]: !prev[id] }));
     };
 
+    // Handle comment submission
+    const handleCommentSubmit = (e, ticketId) => {
+        e.preventDefault();
+
+        // Create FormData to handle the comment submission
+        const formData = new FormData();
+        formData.append('comment', comment);
+        formData.append('ticket_id', ticketId);
+        router.post('/comments/store', formData, {
+            onSuccess: () => {
+                setComment("");  // Clear textarea
+                setMessage(successMessage);
+            },
+            // Submit the comment using Inertia
+            onError: (errors) => {
+                console.log('Error:', errors);  // Log any errors in the form submission
+            },
+        });
+    }
     return (
         <AuthenticatedLayout
-            header={
-                <UserHeader />
-            }
+            header={<UserHeader />}
         >
             <Head title="View Tickets" />
+            {message && (
+                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <span className="block sm:inline">{message}</span>
+                    <span
+                        className="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer"
+                        onClick={() => setMessage("")}
+                    >
+                        <svg className="fill-current h-6 w-6 text-green-700" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <title>Close</title>
+                            <path d="M14.348 5.652a1 1 0 00-1.414-1.414L10 7.172 7.066 4.238a1 1 0 10-1.414 1.414L8.586 10l-2.934 2.934a1 1 0 101.414 1.414L10 12.828l2.934 2.934a1 1 0 001.414-1.414L11.414 10l2.934-2.934z" />
+                        </svg>
+                    </span>
+                </div>
+            )}
+
 
             <div className="py-12 bg-blue-200 min-h-screen">
                 <div className="mx-auto max-w-4xl sm:px-6 lg:px-8">
@@ -85,7 +119,6 @@ const ViewTickets = () => {
                                                         {showAttachment[ticket.id] ? 'Hide Attachment' : 'View Attachment'}
                                                     </button>
                                                 </td>
-
                                             </tr>
 
                                             {/* Ticket details */}
@@ -104,6 +137,45 @@ const ViewTickets = () => {
                                                                 <strong>Labels:</strong>{' '}
                                                                 {ticket.labels.map((label) => label.name).join(', ')}
                                                             </p>
+                                                            {ticket.comments && ticket.comments.length > 0 && (
+                                                                <div className="mt-4 border-t pt-2">
+                                                                    <h4 className="font-semibold text-gray-700 mb-2">Comments:</h4>
+                                                                    <ul className="space-y-2">
+                                                                        {ticket.comments.map((comment) => (
+                                                                            <li key={comment.id} className="bg-gray-100 p-2 rounded shadow-sm">
+                                                                                <p className="text-sm text-gray-800">{comment.comment}</p>
+                                                                                <p className="text-xs text-gray-500">— {comment.user?.name || 'Unknown'} | {new Date(comment.created_at).toLocaleString()}</p>
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Comment Form */}
+                                                            <div className="mt-4">
+                                                                <form>
+                                                                    <label htmlFor={`comment-${ticket.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+                                                                        Add Comment:
+                                                                    </label>
+                                                                    <textarea
+                                                                        name="comment"
+                                                                        id={`comment-${ticket.id}`}
+                                                                        rows="2"
+                                                                        className="w-full p-2 border border-gray-300 rounded mb-2"
+                                                                        placeholder="Type your comment..."
+                                                                        value={comment}
+                                                                        onChange={(e) => setComment(e.target.value)}
+                                                                        required
+                                                                    ></textarea>
+                                                                    <button
+                                                                        type="submit"
+                                                                        onClick={(e) => handleCommentSubmit(e, ticket.id)}
+                                                                        className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm"
+                                                                    >
+                                                                        Submit
+                                                                    </button>
+                                                                </form>
+                                                            </div>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -153,4 +225,4 @@ const ViewTickets = () => {
     );
 };
 
-export default ViewTickets;
+export default ViewTicket;

@@ -9,8 +9,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
-
+use App\Http\Controllers\CommentController;
 
 // Public Welcome Page
 Route::get('/', function () {
@@ -42,6 +41,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Tickets List
     Route::get('/tickets', [CreateTicketController::class, 'index'])->name('tickets.index');
     Route::get('/tickets/{id}', [CreateTicketController::class, 'view'])->name('tickets.view');
+
+    Route::post('/comments/store', [CommentController::class, 'store'])->name('comments.store');
+
 });
 
 //ADMIN
@@ -86,6 +88,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 Route::middleware(['auth', 'verified', 'role:agent'])->group(function () {
     Route::get('/agent/dashboard', [AgentDashboardController::class, 'index'])->name('agent.dashboard');
     Route::put('/agent/tickets/{ticket}/close', [AgentDashboardController::class, 'close'])->name('agent.tickets.close');
+    Route::get('/agent/tickets', [CommentController::class, 'agentTickets'])->name('agent.tickets');
+    Route::post('/agentcomments/store', [CommentController::class, 'agentstore'])->name('comments.store2');
+
 });
 
 
